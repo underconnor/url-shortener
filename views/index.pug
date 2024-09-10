@@ -1,0 +1,70 @@
+extends layout
+
+block content
+  h1 URL Shortener
+
+  form#shortenForm(action="/shorten" method="POST")
+    div
+      label(for="originalUrl") Enter URL to shorten:
+      input(type="text" name="originalUrl" id="originalUrl" required)
+    div
+      label(for="customAlias") Custom Alias (optional):
+      input(type="text" name="customAlias" id="customAlias")
+    div
+      label(for="length") Shortened URL Length (optional):
+      input(type="number" name="length" id="length" min="3" value="3")
+    div
+      button(type="submit") Shorten
+
+  // Display the shortened URL and copy button
+  div#result(style="margin-top: 20px; display: none;")
+    p Shortened URL:
+    input(type="text" id="shortenedUrl" readonly)
+    button#copyBtn(type="button") Copy
+
+  script.
+    // JavaScript to handle AJAX form submission
+    document.getElementById('shortenForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      // Get form data
+      const originalUrl = document.getElementById('originalUrl').value;
+      const customAlias = document.getElementById('customAlias').value;
+      const length = document.getElementById('length').value;
+
+      // Prepare data for the POST request
+      const data = { originalUrl, customAlias, length };
+
+      try {
+        // Send POST request to /shorten
+        const response = await fetch('/shorten', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to shorten the URL');
+        }
+
+        const result = await response.json();
+
+        // Display the shortened URL
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('shortenedUrl').value = window.location.origin + '/' + result.shortenedUrl;
+
+      } catch (error) {
+        console.error(error);
+        alert('Error shortening URL: ' + error.message);
+      }
+    });
+
+    // Copy button functionality
+    document.getElementById('copyBtn').addEventListener('click', function() {
+      const shortenedUrlInput = document.getElementById('shortenedUrl');
+      shortenedUrlInput.select();
+      document.execCommand('copy');
+      alert('Shortened URL copied to clipboard!');
+    });

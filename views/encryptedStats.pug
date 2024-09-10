@@ -1,0 +1,82 @@
+extends layout
+
+block content
+  h1 Stats Page
+
+  // Hidden encrypted data
+  input(type="hidden" id="encryptedContent" value=encryptedContent)
+
+  // Input field for the decryption key
+  div
+    label(for="key") Enter Decryption Key:
+    input(type="password" id="key" required)
+    button(type="button" id="decryptBtn") Decrypt
+
+  // Div to display decrypted content
+  div#decryptedContent(style="margin-top: 20px; display: none;")
+    h3 Decrypted Stats:
+    div#statsDisplay
+
+  // Include crypto-js library for client-side decryption
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js")
+
+  // Decryption and display logic using crypto-js
+  script.
+    document.getElementById('decryptBtn').addEventListener('click', function() {
+      const key = document.getElementById('key').value;
+      const encryptedContent = document.getElementById('encryptedContent').value;
+
+      try {
+        // Split the IV and encrypted data
+        const [ivHex, encryptedText] = encryptedContent.split(':');
+        const iv = CryptoJS.enc.Hex.parse(ivHex);
+        const encrypted = CryptoJS.enc.Hex.parse(encryptedText);
+
+        // Decrypt using AES-256-CBC with the provided key
+        const decryptedBytes = CryptoJS.AES.decrypt({ ciphertext: encrypted }, CryptoJS.enc.Hex.parse(key), {
+          iv: iv,
+          mode: CryptoJS.mode.CBC,
+          padding: CryptoJS.pad.Pkcs7
+        });
+
+        // Convert decrypted data to a UTF-8 string
+        const decryptedData = decryptedBytes.toString(CryptoJS.enc.Utf8);
+
+        if (!decryptedData) {
+          throw new Error('Invalid key or corrupted data');
+        }
+
+        // Parse the decrypted JSON data
+        const stats = JSON.parse(decryptedData);
+
+        // Create a formatted display of the decrypted stats
+        const statsDisplay = document.getElementById('statsDisplay');
+        statsDisplay.innerHTML = `
+          <h3>Original URL:</h3> <p>${stats.originalUrl}</p>
+          <h3>Shortened URL:</h3> <p>${stats.shortenedUrl}</p>
+          <h3>Total Visits:</h3> <p>${stats.totalVisits}</p>
+          <h3>Access Logs:</h3>
+          <table border="1" cellpadding="5" cellspacing="0">
+            <thead>
+              <tr>
+                <th>IP Address</th>
+                <th>Access Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${stats.logs.map(log => `
+                <tr>
+                  <td>${log.ipAddress}</td>
+                  <td>${new Date(log.accessTime).toLocaleString()}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        `;
+
+        // Display the decrypted content
+        document.getElementById('decryptedContent').style.display = 'block';
+
+      } catch (error) {
+        alert('Decryption failed: ' + error.message);
+      }
+    });

@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  h1 Statistics for #{shortenedUrl}
+
+  h3 Original URL: #{originalUrl}
+
+  h3 Total Visits: #{totalVisits}
+
+  if logs.length
+    table
+      thead
+        tr
+          th IP Address
+          th Access Time
+      tbody
+        each log in logs
+          tr
+            td= log.ipAddress
+            td= new Date(log.accessTime).toLocaleString()
+  else
+    p No access logs found for this URL.
