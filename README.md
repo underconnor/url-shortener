@@ -41,7 +41,7 @@ The project uses environment variables to store sensitive information like the *
 ```bash
 # .env.example
 PORT = 3000
-ENCRYPTION_KEY=4a3cd4e081675bd8a06b3577724708e619becac1722d7b6f611a13b39fe97404
+ENCRYPTION_KEY=4a3cd4e081675bd8a06b3577724708e619becac1722d7b6f611a13b39fe97404  # example
 REDIRECT_TYPE=302 # 301 or 302 (README 참고, default: 302)
 
 # 데이터베이스 설정
